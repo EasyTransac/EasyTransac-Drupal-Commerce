@@ -365,7 +365,7 @@ function easytransac__version_string()
     $curl_info_string = function_exists('curl_version') ? 'enabled' : 'not found';
     $openssl_info_string = OPENSSL_VERSION_NUMBER >= 0x10001000 ? 'TLSv1.2' : 'OpenSSL version deprecated';
     $https_info_string = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'S' : '';
-    $version_string = sprintf('Drupal 2.0.4 [cURL %s, OpenSSL %s, HTTP%s]', $curl_info_string, $openssl_info_string, $https_info_string);
+    $version_string = sprintf('Drupal 2.0.5 [cURL %s, OpenSSL %s, HTTP%s]', $curl_info_string, $openssl_info_string, $https_info_string);
     return $version_string;
 }
 
@@ -404,22 +404,22 @@ function easytransac_oneclick_payment($form, $form_state, $order, $payment_metho
             ->setOrderId($order->order_id)
             ->setClientId($user->data['easytransac-clientid'])
             ->setVersion(easytransac__version_string());
-        
-        if(!$transaction){
-            // Payment cannot proceed.
-            $message = sprintf('%s - %s - %s - %s - %s', 
-                    strip_tags($_SESSION['easytransac_oneclick_card']),
-                    easytransac__order_amount($order),
-                    $order->order_id,
-                    $user->data['easytransac-clientid'],
-                    easytransac__version_string()
-                );
-            watchdog('easytransac', 'OneClick INIT FATAL: ' . $message , array(), WATCHDOG_ERROR);
-            $_SESSION['easytransac_last_error'] = 'OneClick payment error.';
-            $cancel_url = 'checkout/' . $order->order_id . '/payment/back/' . $order->data['payment_redirect_key'];
-            drupal_goto($cancel_url);
-        }
 
+            if(!$transaction){
+                // Payment cannot proceed.
+                $message = sprintf('%s - %s - %s - %s - %s', 
+                        strip_tags($_SESSION['easytransac_oneclick_card']),
+                        easytransac__order_amount($order),
+                        $order->order_id,
+                        $user->data['easytransac-clientid'],
+                        easytransac__version_string()
+                    );
+                watchdog('easytransac', 'OneClick INIT FATAL: ' . $message , array(), WATCHDOG_ERROR);
+                $_SESSION['easytransac_last_error'] = 'OneClick payment error.';
+                $cancel_url = 'checkout/' . $order->order_id . '/payment/back/' . $order->data['payment_redirect_key'];
+                drupal_goto($cancel_url);
+            }
+    
         $dp = new EasyTransac\Requests\OneClickPayment();
         $response = $dp->execute($transaction);
 
@@ -656,6 +656,8 @@ function easytransac__add_transaction($received_data, $order = NULL, $payment_in
     $is_multiple_payments = is_a($response, '\EasyTransac\Entities\DoneTransaction')
         && $response->getMultiplePayments() === 'yes';
 
+        EasyTransac\Core\Logger::getInstance()->setActive(isset($debug_mode) && !empty($debug_mode));
+        EasyTransac\Core\Logger::getInstance()->setFilePath(__DIR__ . '/logs/');
     switch ($response->getStatus()) {
         case 'failed':
             $transaction->status = COMMERCE_PAYMENT_STATUS_FAILURE;
@@ -724,9 +726,10 @@ function easytransac_listcards()
         $response = $request->execute($customer);
         if ($response->isSuccess()) {
             $buffer = array();
+            $year = substr($cc->getYear(), -2, 2);
             foreach ($response->getContent()->getCreditCards() as $cc) {
                 /* @var $cc EasyTransac\Entities\CreditCard */
-                $buffer[] = array('Alias' => $cc->getAlias(), 'CardNumber' => $cc->getNumber());
+                $buffer[] = array('Alias' => $cc->getAlias(), 'CardNumber' => $cc->getNumber(), 'Month' => $cc->getMonth(), 'Year' => $year);
             }
             $output = array('status' => !empty($buffer), 'packet' => $buffer);
         }
