@@ -404,6 +404,21 @@ function easytransac_oneclick_payment($form, $form_state, $order, $payment_metho
             ->setOrderId($order->order_id)
             ->setClientId($user->data['easytransac-clientid'])
             ->setVersion(easytransac__version_string());
+        
+        if(!$transaction){
+            // Payment cannot proceed.
+            $message = sprintf('%s - %s - %s - %s - %s', 
+                    strip_tags($_SESSION['easytransac_oneclick_card']),
+                    easytransac__order_amount($order),
+                    $order->order_id,
+                    $user->data['easytransac-clientid'],
+                    easytransac__version_string()
+                );
+            watchdog('easytransac', 'OneClick INIT FATAL: ' . $message , array(), WATCHDOG_ERROR);
+            $_SESSION['easytransac_last_error'] = 'OneClick payment error.';
+            $cancel_url = 'checkout/' . $order->order_id . '/payment/back/' . $order->data['payment_redirect_key'];
+            drupal_goto($cancel_url);
+        }
 
         $dp = new EasyTransac\Requests\OneClickPayment();
         $response = $dp->execute($transaction);
