@@ -33,7 +33,7 @@ CONFIGURATION
 
  * Create an account on https://www.easytransac.com and configure your 
    application by allowing your server's IP address. This will provide you with 
-   an API Key.
+   an API Key. The notification URL is https://your-website/easytransac/notification
 
  * Enter your API Key on the payment method configuration page, accessible via
    Store / Configuration / Payment methods / EasyTransac payment /
