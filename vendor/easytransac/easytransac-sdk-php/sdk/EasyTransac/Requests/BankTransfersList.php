@@ -11,7 +11,7 @@ use \EasyTransac\Entities\Entity;
  */
 class BankTransfersList extends Request
 {
-    /** @array:BankTransferInfos **/
+    /** @object:BankTransfersList **/
     protected $response;
 
     /**

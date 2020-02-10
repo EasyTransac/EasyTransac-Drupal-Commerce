@@ -5,13 +5,13 @@ namespace EasyTransac\Requests;
 use \EasyTransac\Entities\Entity;
 
 /**
- * API function /client/payout/list, get the status of a bank transfer
+ * API function /client/payout/init, make a bank transfer from your account to a customer
  * @author Klyde
  * @copyright EasyTransac
  */
-class BankTransfersStatus extends Request
+class MakeBankTransfer extends Request
 {
-    /** @array:BankTransferInfos **/
+    /** @object:BankTransferInfos **/
     protected $response;
 
     /**
@@ -21,7 +21,7 @@ class BankTransfersStatus extends Request
      */
     public function execute(Entity $entity)
     {
-        return $this->call('/client/payout/status', $entity);
+        return $this->call('/client/payout/init', $entity);
     }
 }
 
