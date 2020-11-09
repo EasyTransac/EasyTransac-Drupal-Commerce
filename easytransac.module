@@ -89,7 +89,7 @@ function easytransac_settings_form($settings = array())
 
     // Merge default settings into the stored settings array.
     $settings = (array)$settings + easytransac_default_settings();
-
+l
     // Requirements.
     $openssl_version_supported = OPENSSL_VERSION_NUMBER >= 0x10001000;
     $curl_activated = function_exists('curl_version');
